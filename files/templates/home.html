@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .hero-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+        .stat-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        .stat-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .cpu { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+        .memory { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+        .disk { background: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%); }
+        .file-browser {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        .file-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        .file-item:hover {
+            background: #e9ecef;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .file-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .folder-icon { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .file-icon-default { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+        .btn-custom {
+            border-radius: 25px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        .btn-primary-custom:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+            transform: translateY(-2px);
+        }
+        .btn-secondary-custom {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+            border: none;
+        }
+        .btn-secondary-custom:hover {
+            background: linear-gradient(135deg, #26d0ce 0%, #2d9d7a 100%);
+            transform: translateY(-2px);
+        }
+        .breadcrumb-custom a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .breadcrumb-custom a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-5">
+        <div class="hero-section mx-auto mb-5" style="max-width: 800px;">
+            <h1 class="text-center text-white mb-4 display-4 fw-light">Server Manager</h1>
+            <p class="text-center text-white-50 lead">Monitor your server resources and manage files with ease</p>
+        </div>
+        
+        <div class="row g-4 mb-5">
+            <div class="col-lg-4 col-md-6">
+                <div class="card stat-card cpu h-100">
+                    <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                        <div class="stat-icon text-white mb-3">
+                            <i class="fas fa-microchip"></i>
+                        </div>
+                        <h5 class="card-title text-muted mb-3">CPU Usage</h5>
+                        <h2 class="display-4 fw-bold text-dark mb-2">{{ stats.cpu.percent|floatformat:1 }}%</h2>
+                        <small class="text-muted">{{ stats.cpu.count }} cores</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="card stat-card memory h-100">
+                    <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                        <div class="stat-icon text-white mb-3">
+                            <i class="fas fa-memory"></i>
+                        </div>
+                        <h5 class="card-title text-muted mb-3">Memory Usage</h5>
+                        <h2 class="display-4 fw-bold text-dark mb-2">{{ stats.memory.percent|floatformat:1 }}%</h2>
+                        <small class="text-muted">RAM</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-12">
+                <div class="card stat-card disk h-100">
+                    <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                        <div class="stat-icon text-white mb-3">
+                            <i class="fas fa-hdd"></i>
+                        </div>
+                        <h5 class="card-title text-muted mb-3">Disk Usage</h5>
+                        <h2 class="display-4 fw-bold text-dark mb-2">{{ stats.disk.percent|floatformat:1 }}%</h2>
+                        <small class="text-muted">Storage</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card file-browser mx-auto" style="max-width: 1200px;">
+            <div class="card-header bg-transparent border-0">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb breadcrumb-custom mb-0">
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'home' %}"><i class="fas fa-home me-1"></i>Home</a>
+                        </li>
+                        {% for part in path_parts %}
+                            <li class="breadcrumb-item">
+                                <a href="{% url 'home_folder' part.path %}">{{ part.name }}</a>
+                            </li>
+                        {% endfor %}
+                    </ol>
+                </nav>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title mb-4">
+                    <i class="fas fa-folder-open me-2 text-primary"></i>
+                    File Explorer
+                </h5>
+                <div class="row g-3">
+                    {% for item in items %}
+                        <div class="col-xl-3 col-lg-4 col-md-6">
+                            <div class="file-item d-flex align-items-center p-3">
+                                <div class="file-icon me-3 {% if item.is_dir %}folder-icon{% else %}file-icon-default{% endif %}">
+                                    {% if item.is_dir %}
+                                        <i class="fas fa-folder"></i>
+                                    {% else %}
+                                        <i class="fas fa-file"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="file-details flex-grow-1">
+                                    <div class="file-name fw-semibold mb-1">
+                                        {% if item.is_dir %}
+                                            <a href="{% url 'home_folder' item.path %}" class="text-decoration-none text-dark">{{ item.name }}</a>
+                                        {% else %}
+                                            <a href="{% url 'view_file' item.path %}" target="_blank" class="text-decoration-none text-dark">{{ item.name }}</a>
+                                        {% endif %}
+                                    </div>
+                                    {% if not item.is_dir %}
+                                        <div class="file-size small text-muted">{{ item.size|filesizeformat }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="file-actions ms-2">
+                                    {% if item.is_dir %}
+                                        <a href="{% url 'download_folder' item.path %}" class="btn btn-secondary-custom btn-sm btn-custom">
+                                            <i class="fas fa-download me-1"></i>ZIP
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'download_file' item.path %}" class="btn btn-primary-custom btn-sm btn-custom">
+                                            <i class="fas fa-download me-1"></i>DL
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="col-12">
+                            <div class="text-center py-5">
+                                <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">This folder is empty</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
